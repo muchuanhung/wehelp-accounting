@@ -23,11 +23,11 @@ export default function Form({ onAdd }: FormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-center justify-center gap-2">
       <select
         value={type}
         onChange={(e) => setType(e.target.value as RecordType)}
-        className="rounded border border-zinc-300 px-3 py-2"
+        className="w-28 rounded border border-zinc-400 px-3 py-2"
         aria-label="收支類型"
       >
         <option value="income">收入</option>
@@ -39,7 +39,7 @@ export default function Form({ onAdd }: FormProps) {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         placeholder="金額"
-        className="w-28 rounded border border-zinc-300 px-3 py-2"
+        className="w-36 rounded border border-zinc-400 px-3 py-2"
         aria-label="金額"
         required
       />
@@ -48,13 +48,13 @@ export default function Form({ onAdd }: FormProps) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="說明"
-        className="flex-1 rounded border border-zinc-300 px-3 py-2"
+        className="w-full rounded border border-zinc-400 px-3 py-2 sm:w-80"
         aria-label="說明"
         required
       />
       <button
         type="submit"
-        className="rounded bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-700"
+        className="rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
       >
         新增紀錄
       </button>

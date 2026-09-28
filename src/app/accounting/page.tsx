@@ -9,14 +9,21 @@ export default function AccountingPage() {
   const { records, addRecord, removeRecord, total } = useRecords();
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-10">
-      <h1 className="mb-6 text-2xl font-bold">記帳</h1>
-      <Form onAdd={addRecord} />
-      <hr className="my-6 border-zinc-200" />
-      <List records={records} total={total} onRemove={removeRecord} />
-      <Link href="/" className="mt-8 inline-block text-zinc-600 underline">
-        返回首頁
-      </Link>
+    <main className="w-full pb-10">
+      <div className="border-b border-zinc-200 px-4 py-8 sm:py-12">
+        <Form onAdd={addRecord} />
+      </div>
+      <div className="mx-auto max-w-2xl px-4 pt-4">
+        <List records={records} total={total} onRemove={removeRecord} />
+      </div>
+      <div className="mt-6 text-center">
+        <Link
+          href="/"
+          className="inline-block rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
+        >
+          返回首頁
+        </Link>
+      </div>
     </main>
   );
 }
