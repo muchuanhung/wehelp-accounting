@@ -1,5 +1,4 @@
 import type { AccountRecord } from "@/types/record";
-import { formatCurrency } from "@/utils/formatCurrency";
 
 interface ListProps {
   records: AccountRecord[];
@@ -13,22 +12,22 @@ export default function List({ records, total, onRemove }: ListProps) {
       {records.length === 0 ? (
         <p className="py-6 text-center text-zinc-500">目前沒有紀錄，新增一筆開始記帳吧</p>
       ) : (
-        <ul className="divide-y divide-zinc-200">
+        <ul>
           {records.map((record) => (
-            <li key={record.id} className="flex items-center gap-4 py-3">
+            <li key={record.id} className="flex items-center gap-4 py-3 text-lg sm:gap-6">
               <span
-                className={`w-24 text-right font-medium ${
-                  record.type === "income" ? "text-green-600" : "text-red-600"
+                className={`min-w-16 shrink-0 ${
+                  record.type === "income" ? "text-[#4a7c3a]" : "text-[#7b2d26]"
                 }`}
               >
-                {record.type === "income" ? "+" : "-"}
-                {formatCurrency(record.amount)}
+                {record.type === "expense" ? "-" : ""}
+                {record.amount}
               </span>
-              <span className="flex-1">{record.description}</span>
+              <span className="min-w-0 flex-1 break-words">{record.description}</span>
               <button
                 type="button"
                 onClick={() => onRemove(record.id)}
-                className="rounded border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-100"
+                className="shrink-0 rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200"
               >
                 刪除
               </button>
@@ -36,8 +35,9 @@ export default function List({ records, total, onRemove }: ListProps) {
           ))}
         </ul>
       )}
-      <p className="mt-4 border-t border-zinc-300 pt-4 text-right text-lg font-semibold">
-        小計：{formatCurrency(total)}
+      <p className="mt-10 text-center text-lg">
+        <span className="font-semibold">小計：</span>
+        {total}
       </p>
     </div>
   );
