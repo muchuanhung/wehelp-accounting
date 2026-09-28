@@ -7,7 +7,7 @@ export function useRecords() {
   const [records, setRecords] = useState<AccountRecord[]>([]);
 
   const addRecord = (record: Omit<AccountRecord, "id">) => {
-    setRecords((prev) => [...prev, { ...record, id: crypto.randomUUID() }]);
+    setRecords((prev) => [{ ...record, id: crypto.randomUUID() }, ...prev]);
   };
 
   const removeRecord = (id: string) => {
