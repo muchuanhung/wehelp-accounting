@@ -1,4 +1,4 @@
-import type { AccountRecord } from "@/types/record";
+import type { AccountRecord } from "@/hooks/useRecords";
 
 interface ListProps {
   records: AccountRecord[];

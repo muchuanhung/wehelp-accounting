@@ -1,7 +1,13 @@
-"use client";
+import { useState } from "react";
 
-import { useMemo, useState } from "react";
-import type { AccountRecord } from "@/types/record";
+export type RecordType = "income" | "expense";
+
+export interface AccountRecord {
+  id: string;
+  type: RecordType;
+  amount: number;
+  description: string;
+}
 
 export function useRecords() {
   const [records, setRecords] = useState<AccountRecord[]>([]);
@@ -14,14 +20,10 @@ export function useRecords() {
     setRecords((prev) => prev.filter((record) => record.id !== id));
   };
 
-  const total = useMemo(
-    () =>
-      records.reduce(
-        (sum, record) =>
-          record.type === "income" ? sum + record.amount : sum - record.amount,
-        0,
-      ),
-    [records],
+  const total = records.reduce(
+    (sum, record) =>
+      record.type === "income" ? sum + record.amount : sum - record.amount,
+    0,
   );
 
   return { records, addRecord, removeRecord, total };

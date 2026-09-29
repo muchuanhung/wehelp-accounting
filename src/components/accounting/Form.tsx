@@ -1,32 +1,31 @@
-"use client";
+import { useState } from "react";
+import type { AccountRecord } from "@/hooks/useRecords";
 
-import { useState, type FormEvent } from "react";
-import type { AccountRecord, RecordType } from "@/types/record";
-
-interface FormProps {
+export default function Form({
+  onAdd,
+}: {
   onAdd: (record: Omit<AccountRecord, "id">) => void;
-}
-
-export default function Form({ onAdd }: FormProps) {
-  const [type, setType] = useState<RecordType>("income");
+}) {
+  const [type, setType] = useState<AccountRecord["type"]>("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const value = Number(amount);
-    if (!value || value <= 0 || !description.trim()) return;
-
-    onAdd({ type, amount: value, description: description.trim() });
-    setAmount("");
-    setDescription("");
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap items-center justify-center gap-2">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const value = Number(amount);
+        if (!value || value <= 0 || !description.trim()) return;
+
+        onAdd({ type, amount: value, description: description.trim() });
+        setAmount("");
+        setDescription("");
+      }}
+      className="flex flex-wrap items-center justify-center gap-2"
+    >
       <select
         value={type}
-        onChange={(e) => setType(e.target.value as RecordType)}
+        onChange={(e) => setType(e.target.value as AccountRecord["type"])}
         className="w-28 rounded border border-zinc-400 px-3 py-2"
         aria-label="收支類型"
       >
