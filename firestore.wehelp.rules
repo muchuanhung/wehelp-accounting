@@ -1,5 +1,3 @@
-// 併進 velorder-db00d 現有的 firestore.rules，放在 match /databases/{database}/documents 裡面。
-// 不要用這段覆蓋整份規則，否則會清掉專案裡其他路徑的設定。
 match /wehelpAccounting/{uid}/records/{recordId} {
   allow read, delete: if request.auth != null && request.auth.uid == uid;
   allow create: if request.auth != null
