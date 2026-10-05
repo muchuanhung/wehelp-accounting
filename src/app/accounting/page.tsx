@@ -8,9 +8,6 @@ import List from "@/components/accounting/List";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecords } from "@/hooks/useRecords";
 
-const buttonClass =
-  "inline-block rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200";
-
 export default function AccountingPage() {
   const router = useRouter();
   const { user, loading: authLoading, logOut } = useAuth();
@@ -35,7 +32,7 @@ export default function AccountingPage() {
           onClick={() => {
             void logOut().then(() => router.push("/"));
           }}
-          className={buttonClass}
+          className="inline-block rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
         >
           登出
         </button>
@@ -52,7 +49,10 @@ export default function AccountingPage() {
         )}
       </div>
       <div className="mt-6 text-center">
-        <Link href="/" className={buttonClass}>
+        <Link
+          href="/"
+          className="inline-block rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
+        >
           返回首頁
         </Link>
       </div>
