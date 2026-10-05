@@ -5,9 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
-const buttonClass =
-  "rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200 disabled:opacity-60";
-
 export default function AuthPanel() {
   const { user, loading, error, signIn, signUp, logOut } = useAuth();
   const router = useRouter();
@@ -24,10 +21,17 @@ export default function AuthPanel() {
     return (
       <div className="mt-12 flex flex-col items-center gap-3 px-4">
         <p className="text-zinc-700">{user.email}</p>
-        <Link href="/accounting" className={buttonClass}>
+        <Link
+          href="/accounting"
+          className="rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
+        >
           點此開始
         </Link>
-        <button type="button" onClick={() => void logOut()} className={buttonClass}>
+        <button
+          type="button"
+          onClick={() => void logOut()}
+          className="rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
+        >
           登出
         </button>
       </div>
@@ -51,14 +55,18 @@ export default function AuthPanel() {
         <button
           type="button"
           onClick={() => setMode("login")}
-          className={`${buttonClass} ${mode === "login" ? "bg-zinc-200" : ""}`}
+          className={`rounded-sm border border-zinc-300 px-4 py-2 hover:bg-zinc-200 ${
+            mode === "login" ? "bg-zinc-200" : "bg-zinc-100"
+          }`}
         >
           登入
         </button>
         <button
           type="button"
           onClick={() => setMode("signUp")}
-          className={`${buttonClass} ${mode === "signUp" ? "bg-zinc-200" : ""}`}
+          className={`rounded-sm border border-zinc-300 px-4 py-2 hover:bg-zinc-200 ${
+            mode === "signUp" ? "bg-zinc-200" : "bg-zinc-100"
+          }`}
         >
           註冊
         </button>
@@ -85,7 +93,11 @@ export default function AuthPanel() {
         className="rounded border border-zinc-400 px-3 py-2"
       />
       {error ? <p className="text-center text-sm text-[#7b2d26]">{error}</p> : null}
-      <button type="submit" disabled={submitting} className={buttonClass}>
+      <button
+        type="submit"
+        disabled={submitting}
+        className="rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200 disabled:opacity-60"
+      >
         {submitting ? "處理中…" : mode === "signUp" ? "建立帳號" : "登入"}
       </button>
     </form>
