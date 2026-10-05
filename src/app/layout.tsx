@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Providers from "@/components/Providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col border border-zinc-300">
-          {children}
+          <Providers>{children}</Providers>
         </div>
       </body>
     </html>
