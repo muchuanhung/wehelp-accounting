@@ -1,12 +1,15 @@
+import { useState } from "react";
 import type { AccountRecord } from "@/hooks/useRecords";
 
 interface ListProps {
   records: AccountRecord[];
   total: number;
-  onRemove: (id: string) => void;
+  onRemove: (id: string) => Promise<void>;
 }
 
 export default function List({ records, total, onRemove }: ListProps) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
   return (
     <div>
       {records.length === 0 ? (
@@ -26,10 +29,14 @@ export default function List({ records, total, onRemove }: ListProps) {
               <span className="min-w-0 flex-1 break-words">{record.description}</span>
               <button
                 type="button"
-                onClick={() => onRemove(record.id)}
-                className="shrink-0 rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200"
+                disabled={pendingId === record.id}
+                onClick={() => {
+                  setPendingId(record.id);
+                  void onRemove(record.id).finally(() => setPendingId(null));
+                }}
+                className="shrink-0 rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200 disabled:opacity-60"
               >
-                刪除
+                {pendingId === record.id ? "刪除中…" : "刪除"}
               </button>
             </li>
           ))}

@@ -4,22 +4,27 @@ import type { AccountRecord } from "@/hooks/useRecords";
 export default function Form({
   onAdd,
 }: {
-  onAdd: (record: Omit<AccountRecord, "id">) => void;
+  onAdd: (record: Omit<AccountRecord, "id">) => Promise<boolean>;
 }) {
   const [type, setType] = useState<AccountRecord["type"]>("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         const value = Number(amount);
-        if (!value || value <= 0 || !description.trim()) return;
+        if (!value || value <= 0 || !description.trim() || submitting) return;
 
-        onAdd({ type, amount: value, description: description.trim() });
-        setAmount("");
-        setDescription("");
+        setSubmitting(true);
+        void onAdd({ type, amount: value, description: description.trim() }).then((ok) => {
+          setSubmitting(false);
+          if (!ok) return;
+          setAmount("");
+          setDescription("");
+        });
       }}
       className="flex flex-wrap items-center justify-center gap-2"
     >
@@ -53,9 +58,10 @@ export default function Form({
       />
       <button
         type="submit"
-        className="rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200"
+        disabled={submitting}
+        className="rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-2 hover:bg-zinc-200 disabled:opacity-60"
       >
-        新增紀錄
+        {submitting ? "新增中…" : "新增紀錄"}
       </button>
     </form>
   );
