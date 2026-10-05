@@ -1,4 +1,4 @@
-import Link from "next/link";
+import AuthPanel from "@/components/auth/AuthPanel";
 
 export default function Home() {
   return (
@@ -9,14 +9,7 @@ export default function Home() {
       <section className="flex h-64 items-center justify-center bg-[#d0dcec] px-4 sm:h-80">
         <p className="text-center text-2xl text-zinc-800 sm:text-3xl">歡迎光臨我的頁面</p>
       </section>
-      <div className="mt-12 text-center">
-        <Link
-          href="/accounting"
-          className="inline-block rounded-sm border border-zinc-300 bg-zinc-100 px-4 py-3 hover:bg-zinc-200"
-        >
-          點此開始
-        </Link>
-      </div>
+      <AuthPanel />
     </main>
   );
 }
