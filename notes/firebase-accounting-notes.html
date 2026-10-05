@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase 會員記帳筆記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:#f6f8f8; --surface:#fff; --surface-sunk:#eef2f2; --ink:#16262b; --ink-soft:#45595e; --muted:#74898e;
+    --rule:#d9e2e2; --rule-soft:#e7eded; --accent:#337788; --accent-wash:#e4eff1;
+    --ok:#2c7a5c; --ok-wash:#e2f0ea; --warn:#9a6716; --warn-wash:#f7ecd9; --danger:#a93b34; --danger-wash:#f7e5e3;
+    --code-bg:#16262b; --code-ink:#dfe9e9; --code-str:#9fd0b4; --code-key:#86bcd0; --code-com:#6f868c; --code-dim:#9fb2b6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#101a1d; --surface:#17252a; --surface-sunk:#1d2f35; --ink:#e6eeee; --ink-soft:#b6c6c8; --muted:#8ba1a5;
+      --rule:#2b4048; --rule-soft:#223339; --accent:#7bbccd; --accent-wash:#1b3138;
+      --ok:#74c39d; --ok-wash:#17322a; --warn:#d3a55f; --warn-wash:#33291a; --danger:#e08b83; --danger-wash:#341f1e;
+      --code-bg:#0b1316;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#101a1d; --surface:#17252a; --surface-sunk:#1d2f35; --ink:#e6eeee; --ink-soft:#b6c6c8; --muted:#8ba1a5;
+    --rule:#2b4048; --rule-soft:#223339; --accent:#7bbccd; --accent-wash:#1b3138;
+    --ok:#74c39d; --ok-wash:#17322a; --warn:#d3a55f; --warn-wash:#33291a; --danger:#e08b83; --danger-wash:#341f1e;
+    --code-bg:#0b1316;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif; font-size:16px; line-height:1.85; -webkit-font-smoothing:antialiased; }
+  .page { max-width:1180px; margin:0 auto; padding:0 28px 120px; display:grid; grid-template-columns:210px minmax(0,1fr); gap:56px; align-items:start; }
+  .masthead { grid-column:1/-1; padding:72px 0 40px; border-bottom:2px solid var(--ink); }
+  .eyebrow { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0 0 18px; }
+  .masthead h1 { font-family:"Noto Serif TC",Georgia,serif; font-weight:700; font-size:clamp(34px,5.2vw,54px); line-height:1.24; margin:0 0 20px; text-wrap:balance; }
+  .standfirst { max-width:62ch; margin:0; font-size:18px; color:var(--ink-soft); }
+  .masthead-meta { margin-top:32px; display:flex; flex-wrap:wrap; gap:10px 28px; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12.5px; color:var(--muted); }
+  .masthead-meta b { color:var(--ink); font-weight:500; }
+  nav.toc { position:sticky; top:32px; padding-top:52px; font-size:14px; line-height:1.6; }
+  nav.toc p { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:0 0 14px; }
+  nav.toc ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px; }
+  nav.toc a { color:var(--ink-soft); text-decoration:none; border-left:2px solid var(--rule); padding-left:12px; display:block; }
+  nav.toc a:hover, nav.toc a:focus-visible { color:var(--accent); border-left-color:var(--accent); }
+  article { padding-top:52px; min-width:0; }
+  section + section { margin-top:68px; }
+  h2 { font-family:"Noto Serif TC",Georgia,serif; font-weight:700; font-size:28px; line-height:1.4; margin:0 0 8px; text-wrap:balance; scroll-margin-top:24px; }
+  .kicker { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 6px; }
+  h3 { font-weight:700; font-size:18px; line-height:1.5; margin:38px 0 10px; }
+  p { margin:0 0 18px; max-width:68ch; }
+  article ul, article ol { max-width:66ch; padding-left:22px; margin:0 0 18px; }
+  article li { margin-bottom:8px; }
+  a { color:var(--accent); text-underline-offset:3px; }
+  code { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.875em; background:var(--surface-sunk); padding:1px 5px; border-radius:3px; word-break:break-word; }
+  pre { margin:0 0 22px; background:var(--code-bg); color:var(--code-ink); padding:20px 22px; border-radius:4px; overflow-x:auto; font-size:13.5px; line-height:1.72; }
+  pre code { background:none; padding:0; font-size:inherit; word-break:normal; }
+  .c { color:var(--code-com); } .s { color:var(--code-str); } .k { color:var(--code-key); }
+  figure { margin:0 0 26px; }
+  figcaption { font-size:13.5px; color:var(--muted); margin-top:10px; max-width:62ch; }
+  .flow { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:26px 22px; overflow-x:auto; }
+  .flow svg { display:block; min-width:660px; width:100%; height:auto; }
+  .note { border-left:3px solid var(--accent); background:var(--accent-wash); padding:18px 22px; margin:0 0 22px; border-radius:0 4px 4px 0; }
+  .note.warn { border-left-color:var(--warn); background:var(--warn-wash); }
+  .note.trap { border-left-color:var(--danger); background:var(--danger-wash); }
+  .note p { margin:0; max-width:62ch; } .note p + p { margin-top:10px; }
+  .note-label { display:block; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px; color:var(--accent); }
+  .note.warn .note-label { color:var(--warn); } .note.trap .note-label { color:var(--danger); }
+  .scroller { overflow-x:auto; margin:0 0 24px; }
+  table { border-collapse:collapse; width:100%; min-width:520px; font-size:14.5px; }
+  th, td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.6; }
+  th { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--rule); font-weight:500; white-space:nowrap; }
+  td code { font-size:.84em; }
+  .pill { display:inline-block; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.06em; padding:2px 9px; border-radius:100px; white-space:nowrap; }
+  .pill.ok { background:var(--ok-wash); color:var(--ok); } .pill.warn { background:var(--warn-wash); color:var(--warn); } .pill.fail { background:var(--danger-wash); color:var(--danger); }
+  .ledger { display:grid; gap:1px; background:var(--rule-soft); border:1px solid var(--rule-soft); border-radius:4px; overflow:hidden; margin-bottom:26px; }
+  .ledger-row { background:var(--surface); padding:16px 20px; display:grid; grid-template-columns:52px minmax(0,1fr) auto; gap:16px; align-items:baseline; }
+  .ledger-id { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; color:var(--accent); font-weight:500; }
+  .ledger-what { font-size:15px; line-height:1.6; } .ledger-what small { display:block; color:var(--muted); font-size:13px; }
+  .ledger-check { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; color:var(--ok); white-space:nowrap; }
+  .check { list-style:none; padding-left:0 !important; }
+  .check li { padding-left:30px; position:relative; }
+  .check li::before { content:"☐"; position:absolute; left:0; color:var(--accent); }
+  dl.glossary { margin:0; }
+  dl.glossary div { display:grid; grid-template-columns:190px minmax(0,1fr); gap:20px; padding:14px 0; border-bottom:1px solid var(--rule-soft); }
+  dl.glossary dt { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; line-height:1.7; }
+  dl.glossary dd { margin:0; font-size:15px; color:var(--ink-soft); }
+  footer.end { grid-column:1/-1; margin-top:80px; padding-top:26px; border-top:2px solid var(--ink); font-size:14px; color:var(--muted); display:flex; flex-wrap:wrap; gap:8px 32px; }
+  @media (max-width:900px) {
+    .page { grid-template-columns:minmax(0,1fr); gap:0; padding:0 20px 80px; }
+    nav.toc { display:none; }
+    .masthead { padding-top:48px; }
+    article { padding-top:40px; }
+    .ledger-row { grid-template-columns:44px minmax(0,1fr); } .ledger-check { grid-column:2; }
+    dl.glossary div { grid-template-columns:minmax(0,1fr); gap:4px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">WeHelp 記帳專案 · 本週筆記</p>
+    <h1>登入只是門牌，<br>真正的鎖在資料庫規則</h1>
+    <p class="standfirst">
+      這週把純前端的記帳頁，升級成有會員的版本：用 Firebase Authentication 註冊與登入，紀錄存進 Firestore，而且每個人只能讀寫自己的資料。重點不是「接上 Firebase」，而是搞懂前端的登入判斷防不了誰，真正的權限要寫在 Firestore Security Rules。
+    </p>
+    <div class="masthead-meta">
+      <span>技術 <b>Next.js 16 · React 19</b></span>
+      <span>後端服務 <b>Firebase Auth + Firestore</b></span>
+      <span>資料路徑 <b>wehelpAccounting/{uid}/records</b></span>
+      <span>撰寫於 <b>2026-10-05</b></span>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <p>目次</p>
+    <ol>
+      <li><a href="#overview">本週做了什麼</a></li>
+      <li><a href="#config">Firebase 設定可以公開嗎</a></li>
+      <li><a href="#auth">登入狀態：useAuth</a></li>
+      <li><a href="#guard">頁面守門不等於安全</a></li>
+      <li><a href="#rules">Firestore 規則</a></li>
+      <li><a href="#records">紀錄：先寫入再更新畫面</a></li>
+      <li><a href="#traps">容易踩的坑</a></li>
+      <li><a href="#verify">怎麼驗收</a></li>
+      <li><a href="#glossary">名詞速查</a></li>
+    </ol>
+  </nav>
+
+  <article>
+
+    <!-- ============ 1 ============ -->
+    <section id="overview">
+      <p class="kicker">01 — 總覽</p>
+      <h2>本週做了什麼</h2>
+      <p>
+        幾件事串成一條線：使用者在首頁註冊或登入 → 取得 <code>uid</code> → 進入記帳頁 → 紀錄寫進以 <code>uid</code> 命名的路徑 → 規則確認「這個 uid 只能碰自己的路徑」。
+      </p>
+
+      <div class="ledger">
+        <div class="ledger-row">
+          <span class="ledger-id">01</span>
+          <span class="ledger-what">安裝 firebase 與環境變數範例<small><code>.env.example</code> 列出六個 <code>NEXT_PUBLIC_FIREBASE_*</code> 欄位</small></span>
+          <span class="ledger-check">設定</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-id">02</span>
+          <span class="ledger-what">Firebase 初始化<small><code>src/lib/firebase.ts</code>:檢查設定、避免重複初始化、統一錯誤訊息</small></span>
+          <span class="ledger-check">lib</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-id">03</span>
+          <span class="ledger-what">useAuth 與 AuthProvider<small>提供 <code>signUp</code> / <code>signIn</code> / <code>logOut</code>,並在根 layout 包住整個 app</small></span>
+          <span class="ledger-check">hook</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-id">04</span>
+          <span class="ledger-what">首頁登入與註冊區塊<small>同一頁並排兩個表單;已登入顯示「立刻開始」與「登出」</small></span>
+          <span class="ledger-check">UI</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-id">05</span>
+          <span class="ledger-what">記帳頁需登入,資料庫成功後才更新列表<small><code>useRecords(uid)</code> 讀、新增、刪除都走 Firestore</small></span>
+          <span class="ledger-check">hook + UI</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-id">06</span>
+          <span class="ledger-what">Firestore 規則<small><code>firestore.wehelp.rules</code>:只允許會員讀寫自己的紀錄,並檢查欄位格式</small></span>
+          <span class="ledger-check">規則</span>
+        </div>
+      </div>
+
+      <figure>
+        <div class="flow">
+          <svg viewBox="0 0 680 230" role="img" aria-label="資料流程圖:瀏覽器透過 Firebase Auth 登入取得 uid,再讀寫 Firestore,Firestore 規則比對 request.auth.uid 與路徑中的 uid">
+            <defs>
+              <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <path d="M0,0 L7,3.5 L0,7 z" fill="currentColor"/>
+              </marker>
+            </defs>
+            <g style="color:var(--rule)" stroke="currentColor" stroke-width="1.4" fill="none" marker-end="url(#ar)">
+              <path d="M126 55 H244"/>
+              <path d="M70 80 V150 H244"/>
+              <path d="M356 150 H466"/>
+            </g>
+            <rect x="14" y="32" width="112" height="46" rx="3" fill="var(--surface-sunk)" stroke="var(--rule)"/>
+            <text x="70" y="52" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">瀏覽器</text>
+            <text x="70" y="68" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--muted)">Next.js 頁面</text>
+
+            <rect x="244" y="32" width="112" height="46" rx="3" fill="var(--accent-wash)" stroke="var(--accent)"/>
+            <text x="300" y="52" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">Firebase Auth</text>
+            <text x="300" y="68" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--muted)">email + 密碼</text>
+            <text x="185" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10.5" fill="var(--accent)">登入</text>
+            <text x="300" y="104" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10.5" fill="var(--accent)">發給瀏覽器 uid + token</text>
+
+            <rect x="244" y="124" width="112" height="52" rx="3" fill="var(--surface-sunk)" stroke="var(--rule)"/>
+            <text x="300" y="146" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">Firestore</text>
+            <text x="300" y="164" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--muted)">getDocs / addDoc</text>
+
+            <rect x="466" y="118" width="200" height="64" rx="3" fill="var(--ok-wash)" stroke="var(--ok)"/>
+            <text x="566" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">Security Rules</text>
+            <text x="566" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--ok)">request.auth.uid == {uid}</text>
+            <text x="566" y="172" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--ok)">才放行</text>
+            <text x="411" y="142" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10.5" fill="var(--accent)">每次請求</text>
+          </svg>
+        </div>
+        <figcaption>
+          Firestore 是否放行,是由規則在<strong>伺服器端</strong>判斷;瀏覽器端的程式碼只負責「請求」,說了不算。
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ 2 ============ -->
+    <section id="config">
+      <p class="kicker">02 — 設定</p>
+      <h2>Firebase 的設定可以公開嗎</h2>
+
+      <p>
+        <code>.env.example</code> 裡六個欄位全部以 <code>NEXT_PUBLIC_</code> 開頭。這個前綴的意思是：Next.js 會在<strong>建置時</strong>把值直接塞進送給瀏覽器的 JavaScript，所以誰都看得到。
+      </p>
+
+      <p>
+        對 Firebase 來說這是正常的。<code>apiKey</code> 只是用來<strong>辨識是哪個專案</strong>,不是密碼,拿到它並不能讀取你的資料。能不能讀寫,取決於 Auth 與 Security Rules。反過來說,如果你把規則開成 <code>allow read, write: if true</code>,不管 key 藏得多好,資料庫都是對全世界敞開的。
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>東西</th><th>能不能公開</th><th>為什麼</th></tr></thead>
+          <tbody>
+            <tr><td><code>NEXT_PUBLIC_FIREBASE_*</code></td><td><span class="pill ok">可以</span></td><td>只是專案識別,不能單獨用來存取資料</td></tr>
+            <tr><td>Security Rules</td><td><span class="pill ok">可以公開</span></td><td>規則本身不是祕密,重點是寫對</td></tr>
+            <tr><td>Admin SDK 的服務帳戶金鑰</td><td><span class="pill fail">絕對不行</span></td><td>可以繞過所有規則;這個專案沒有用到,也不該放進前端</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>初始化時的兩個小設計</h3>
+
+<pre><code><span class="c">// 已經初始化過就重用,避免 Next.js 熱重載時重複初始化而報錯</span>
+<span class="k">return</span> getApps()[<span class="s">0</span>] ?? initializeApp(firebaseConfig);
+
+<span class="c">// 缺少任何一個環境變數,直接丟出看得懂的錯誤</span>
+<span class="k">throw new</span> Error(<span class="s">`缺少 Firebase 環境變數:${missing.join(", ")}`</span>);</code></pre>
+
+      <p>
+        缺設定時如果不檢查,Firebase 會丟出難懂的內部錯誤。先檢查、再明講缺哪幾個,除錯快很多。<code>missingFirebaseConfig()</code> 另外給 UI 判斷,讓頁面顯示「缺少 Firebase 環境變數」而不是整頁壞掉。
+      </p>
+    </section>
+
+    <!-- ============ 3 ============ -->
+    <section id="auth">
+      <p class="kicker">03 — 登入</p>
+      <h2>登入狀態:useAuth 與 Context</h2>
+
+      <p>
+        登入狀態是整個 app 都要用的資料(首頁、記帳頁都要知道是誰),所以用 <strong>React Context</strong> 放在根 layout 的 <code>AuthProvider</code>,任何元件呼叫 <code>useAuth()</code> 就拿得到,不必一層一層傳 props。
+      </p>
+
+<pre><code><span class="c">// 不是「登入完成後去讀 user」,而是訂閱狀態變化</span>
+useEffect(() =&gt; {
+  <span class="k">if</span> (missingFirebaseConfig()) <span class="k">return</span>;
+  <span class="k">return</span> onAuthStateChanged(getFirebaseAuth(), (next) =&gt; {
+    setUser(next);
+    setLoading(<span class="k">false</span>);
+  });
+}, []);</code></pre>
+
+      <p>
+        <code>onAuthStateChanged</code> 會在頁面載入時先檢查「之前登入過沒有」(Firebase 預設把登入狀態存在瀏覽器),所以<strong>重新整理後仍保持登入</strong>。回傳值是取消訂閱的函式,直接當 <code>useEffect</code> 的清理函式回傳,元件卸載時就會自動取消。
+      </p>
+
+      <h3>為什麼要有 loading 狀態</h3>
+
+      <p>
+        重新整理的瞬間,Firebase 還在確認登入狀態,此時 <code>user</code> 是 <code>null</code>,但不代表「沒登入」。如果沒有 <code>loading</code>,畫面會先閃一下登入表單,記帳頁甚至會誤判成未登入而把人踢走。所以 <code>loading</code> 為 true 時一律顯示「載入中…」。
+      </p>
+
+      <h3>signUp / signIn 回傳布林值</h3>
+
+      <p>
+        兩個函式成功回傳 <code>true</code>、失敗回傳 <code>false</code>,錯誤訊息存在 <code>error</code> 狀態。呼叫端(表單)只需要知道成不成功:成功就清空輸入框,失敗就顯示訊息。不必自己寫 try/catch,也不必認識 Firebase 的錯誤格式。
+      </p>
+
+      <h3>錯誤訊息統一</h3>
+
+<pre><code><span class="s">"auth/invalid-credential"</span>: <span class="s">"email 或密碼錯誤。"</span>,
+<span class="s">"auth/wrong-password"</span>:     <span class="s">"email 或密碼錯誤。"</span>,
+<span class="s">"auth/user-not-found"</span>:     <span class="s">"email 或密碼錯誤。"</span>,</code></pre>
+
+      <p>
+        帳號不存在與密碼錯誤給<strong>同一句話</strong>。如果分開說「查無此帳號」,攻擊者就能用登入頁一個一個試出哪些 email 有註冊。這叫避免<strong>帳號列舉</strong>(account enumeration)。
+      </p>
+    </section>
+
+    <!-- ============ 4 ============ -->
+    <section id="guard">
+      <p class="kicker">04 — 觀念</p>
+      <h2>頁面守門不等於安全</h2>
+
+      <p>
+        記帳頁用 <code>useEffect</code> 判斷:載入完成而且沒有 user,就 <code>router.replace("/")</code> 導回首頁。這是好的使用者體驗,但<strong>不是安全機制</strong>。
+      </p>
+
+<pre><code>useEffect(() =&gt; {
+  <span class="k">if</span> (!authLoading &amp;&amp; !user) router.replace(<span class="s">"/"</span>);
+}, [authLoading, user, router]);</code></pre>
+
+      <p>
+        原因很單純:這段程式碼跑在使用者的瀏覽器裡。使用者可以停用 JavaScript、改程式碼、或根本不開網頁,直接拿你公開的 Firebase 設定去呼叫 Firestore。前端的判斷全部可以被繞過。
+      </p>
+
+      <div class="note">
+        <span class="note-label">原則</span>
+        <p>
+          前端判斷負責<strong>體驗</strong>(別讓沒登入的人看到空白頁);權限判斷負責<strong>安全</strong>,必須放在使用者碰不到的地方,也就是 Firestore Security Rules。
+        </p>
+      </div>
+
+      <p>
+        用 <code>router.replace</code> 而不是 <code>push</code>,是因為 replace 不會在瀏覽紀錄留下記帳頁,使用者按「上一頁」不會又被彈回來、再被導走,陷入來回跳。
+      </p>
+    </section>
+
+    <!-- ============ 5 ============ -->
+    <section id="rules">
+      <p class="kicker">05 — 規則</p>
+      <h2>Firestore 規則:真正的鎖</h2>
+
+      <p>
+        資料放在 <code>wehelpAccounting/{uid}/records/{recordId}</code>。路徑裡的 <code>{uid}</code> 是萬用字元,規則拿它跟登入者的 <code>request.auth.uid</code> 比對:
+      </p>
+
+<pre><code>match /wehelpAccounting/{uid}/records/{recordId} {
+  <span class="c">// 讀取、刪除:登入,而且路徑裡的 uid 就是自己</span>
+  allow read, delete: if request.auth != null &amp;&amp; request.auth.uid == uid;
+
+  <span class="c">// 新增:除了身分,還要檢查資料長相</span>
+  allow create: if request.auth != null
+    &amp;&amp; request.auth.uid == uid
+    &amp;&amp; request.resource.data.keys().hasOnly([<span class="s">"type"</span>, <span class="s">"amount"</span>, <span class="s">"description"</span>, <span class="s">"createdAt"</span>])
+    &amp;&amp; request.resource.data.type in [<span class="s">"income"</span>, <span class="s">"expense"</span>]
+    &amp;&amp; request.resource.data.amount is number
+    &amp;&amp; request.resource.data.amount &gt; 0
+    &amp;&amp; request.resource.data.description is string
+    &amp;&amp; request.resource.data.description.size() &gt; 0
+    &amp;&amp; request.resource.data.description.size() &lt;= 200
+    &amp;&amp; request.resource.data.createdAt == request.time;
+}</code></pre>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>條件</th><th>在擋什麼</th></tr></thead>
+          <tbody>
+            <tr><td><code>request.auth != null</code></td><td>沒登入的人</td></tr>
+            <tr><td><code>request.auth.uid == uid</code></td><td>已登入,但想讀寫<strong>別人</strong>路徑的人</td></tr>
+            <tr><td><code>keys().hasOnly([...])</code></td><td>夾帶多餘欄位(例如偷塞 <code>isAdmin</code>)</td></tr>
+            <tr><td><code>type in [...]</code></td><td>亂填收支類型</td></tr>
+            <tr><td><code>amount is number</code> 且 <code>&gt; 0</code></td><td>金額寫成字串、負數、零</td></tr>
+            <tr><td><code>description</code> 長度 1 到 200</td><td>空說明、塞超大字串</td></tr>
+            <tr><td><code>createdAt == request.time</code></td><td>偽造時間;要求用伺服器時間</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>三個值得記的地方</h3>
+
+      <p>
+        <strong>沒有 <code>update</code> 規則 = 不能修改。</strong> 規則是「預設拒絕」,沒有明確允許的操作一律被擋。目前介面只有新增與刪除,所以只開這兩個(加上讀取),不多給權限。這叫<strong>最小權限原則</strong>。
+      </p>
+
+      <p>
+        <strong>規則會再驗證一次前端已經驗過的東西。</strong> <code>Form.tsx</code> 已經擋了空說明、金額小於等於 0,但前端驗證只是方便使用者;規則裡再驗一次,才是真的擋得住繞過前端的請求。
+      </p>
+
+      <p>
+        <strong><code>createdAt == request.time</code> 搭配 <code>serverTimestamp()</code>。</strong> 前端寫入時送的是佔位符 <code>serverTimestamp()</code>,Firestore 在伺服器端換成當下時間,同時規則裡的 <code>request.time</code> 也是同一個值,兩者相等才放行。這樣使用者就沒辦法自己填一個假的日期。
+      </p>
+
+      <div class="note warn">
+        <span class="note-label">部署注意</span>
+        <p>
+          repo 裡的 <code>firestore.wehelp.rules</code> 只是<strong>規則片段</strong>,寫了不會自動生效。要貼到 Firebase 主控台的 Firestore 規則頁(或合併進專案原本的規則檔再部署)。沒貼的話,程式會因為預設拒絕而收到 <code>permission-denied</code>。
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 6 ============ -->
+    <section id="records">
+      <p class="kicker">06 — 資料</p>
+      <h2>紀錄:先寫入成功,再更新畫面</h2>
+
+      <p>
+        這週有一個提交的標題是「資料庫成功後才更新列表」。對照兩種寫法:
+      </p>
+
+<pre><code><span class="c">// 做法 A:先改畫面,背景再寫資料庫(樂觀更新)</span>
+setRecords((prev) =&gt; [record, ...prev]);
+addDoc(...);          <span class="c">// 失敗了?畫面上卻已經有這筆</span>
+
+<span class="c">// 做法 B(本專案):等資料庫回應成功,才改畫面</span>
+<span class="k">const</span> ref = <span class="k">await</span> addDoc(recordsCollection(uid), { ... });
+setRecords((prev) =&gt; [{ ...record, id: ref.id }, ...prev]);</code></pre>
+
+      <p>
+        做法 B 會慢一點點,但畫面永遠跟資料庫一致:被規則擋下、網路斷線時,不會出現「看起來新增了、重新整理就消失」的假象。記帳的資料不能騙使用者,所以選保守的做法。同時 <code>ref.id</code> 是 Firestore 產生的文件 id,先等到才有,畫面上的新紀錄才能立刻被刪除。
+      </p>
+
+      <p>
+        <code>Form</code> 的 <code>onAdd</code> 回傳 <code>Promise&lt;boolean&gt;</code>,成功才清空輸入框;失敗時保留使用者已輸入的內容,不用重打。送出期間 <code>submitting</code> 為 true,按鈕停用並顯示「新增中…」,避免連按重複新增。
+      </p>
+
+      <h3>切換使用者時重設狀態</h3>
+
+<pre><code><span class="k">if</span> (uid !== loadedUid) {
+  setLoadedUid(uid);
+  setRecords([]);
+  setLoading(Boolean(uid));
+  setError(<span class="k">null</span>);
+}</code></pre>
+
+      <p>
+        登出再用另一個帳號登入時,<code>uid</code> 變了,上一個人的紀錄必須立刻清掉,否則在新資料載入前畫面會短暫顯示前一個人的帳。這是 React 官方認可的「在 render 中依 props 調整 state」寫法,比在 <code>useEffect</code> 裡重設更不容易閃一下舊畫面。
+      </p>
+
+      <h3>避免過期的回應覆蓋新狀態</h3>
+
+<pre><code>useEffect(() =&gt; {
+  <span class="k">let</span> cancelled = <span class="k">false</span>;
+  getDocs(...).then((snapshot) =&gt; {
+    <span class="k">if</span> (cancelled) <span class="k">return</span>;   <span class="c">// 已經換人或離開頁面,丟掉這份結果</span>
+    setRecords(...);
+  });
+  <span class="k">return</span> () =&gt; { cancelled = <span class="k">true</span>; };
+}, [uid]);</code></pre>
+
+      <p>
+        請求是非同步的:如果請求還沒回來使用者就登出,晚到的結果不該被寫進畫面。清理函式把旗標設成 <code>true</code>,回來時直接忽略。這是處理 race condition 的基本手法。
+      </p>
+
+      <h3>小計怎麼算</h3>
+
+      <p>
+        <code>total</code> 是用 <code>reduce</code> 累加:收入加、支出減。它是由 <code>records</code> 即時算出來的<strong>衍生資料</strong>,不另外存成一個 state,這樣不會有「紀錄變了、小計忘了更新」的不一致。
+      </p>
+    </section>
+
+    <!-- ============ 7 ============ -->
+    <section id="traps">
+      <p class="kicker">07 — 除錯</p>
+      <h2>容易踩的坑</h2>
+      <p>下面是讀這週程式碼時整理出來、最容易出狀況的地方。</p>
+
+      <h3>寫入被拒絕:permission-denied</h3>
+      <p>
+        最常見的原因是規則沒有貼到 Firebase 主控台,或欄位與規則不符(多一個欄位、<code>amount</code> 傳成字串)。專案在 <code>errorMessages</code> 裡把這個錯誤翻成「沒有權限寫入資料庫。請確認 Firestore 規則…」,直接把線索告訴使用者。
+      </p>
+
+      <h3>讀取失敗:要建索引嗎</h3>
+      <p>
+        查詢用了 <code>orderBy("createdAt", "desc")</code>。單一欄位排序 Firestore 會自動建索引,所以不用手動處理;但之後如果加上 <code>where</code> 搭配 <code>orderBy</code>,就可能被要求建立複合索引,錯誤訊息裡會附建立連結。
+      </p>
+
+      <h3>目前只讀一次,不會即時同步</h3>
+      <p>
+        <code>useRecords</code> 用的是 <code>getDocs</code>(讀一次),不是 <code>onSnapshot</code>(即時訂閱)。所以同一個帳號在兩個分頁操作,另一邊要重新整理才看得到。這是刻意的簡化:新增與刪除時本機自己更新畫面就夠用。需要多裝置同步時再換成 <code>onSnapshot</code>。
+      </p>
+
+      <h3>金額是數字,不是字串</h3>
+      <p>
+        <code>&lt;input type="number"&gt;</code> 的 <code>value</code> 一律是字串,必須 <code>Number(amount)</code> 轉換後再寫入;否則規則的 <code>amount is number</code> 會擋下來。讀取時也用 <code>Number(data.amount)</code> 保底。
+      </p>
+
+      <h3>環境變數改了要重啟</h3>
+      <p>
+        <code>NEXT_PUBLIC_*</code> 是建置時寫進程式碼的,改 <code>.env.local</code> 後必須重啟 <code>npm run dev</code>(部署則要重新 build)才會生效。並且 <code>.env.local</code> 不能進版控,repo 只放 <code>.env.example</code>。
+      </p>
+
+      <div class="note trap">
+        <span class="note-label">最大的陷阱</span>
+        <p>
+          測試階段為了方便把規則改成 <code>allow read, write: if true</code>,然後忘了改回來。這等於任何人都能讀寫、刪光整個資料庫。上線前務必確認規則已經收緊。
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 8 ============ -->
+    <section id="verify">
+      <p class="kicker">08 — 驗收</p>
+      <h2>怎麼驗收</h2>
+      <p>
+        規則正確與否,光看畫面看不出來。除了正常流程,更要測「不該成功的事」真的失敗。下面是我打算逐項確認的清單(勾選留給實際測過之後填):
+      </p>
+
+      <h3>正常流程</h3>
+      <ul class="check">
+        <li>首頁註冊新帳號,成功後自動呈現已登入狀態</li>
+        <li>登出後用同一組帳密登入</li>
+        <li>點「立刻開始」進入記帳頁,新增收入與支出各一筆,小計正確</li>
+        <li>重新整理頁面,仍保持登入且紀錄還在</li>
+        <li>刪除一筆,重新整理後不會再出現</li>
+      </ul>
+
+      <h3>應該要失敗的情況</h3>
+      <ul class="check">
+        <li>密碼少於 6 字元註冊 → 顯示「密碼至少要 6 個字元」</li>
+        <li>重複註冊同一個 email → 顯示「這個 email 已經註冊過了」</li>
+        <li>密碼錯誤與帳號不存在 → 訊息相同</li>
+        <li>未登入直接開 <code>/accounting</code> → 被導回首頁</li>
+        <li>用帳號 A 登入後,在 Firebase 規則模擬器以 A 的身分讀 B 的路徑 → 被拒絕</li>
+        <li>模擬器測試新增時多帶一個欄位,或 <code>amount</code> 為字串 → 被拒絕</li>
+        <li>模擬器測試 <code>update</code> → 被拒絕</li>
+      </ul>
+
+      <div class="note">
+        <span class="note-label">工具</span>
+        <p>
+          Firebase 主控台的 Firestore 規則頁有「規則遊樂場」,可以指定「已驗證 / 未驗證」、填入 uid 與路徑,直接模擬讀寫是否被放行,不需要真的寫程式去試。
+        </p>
+      </div>
+
+      <p>
+        另外跑一次 <code>npm run lint</code> 與 <code>npm run build</code>,確認沒有型別或 lint 錯誤。
+      </p>
+    </section>
+
+    <!-- ============ 9 ============ -->
+    <section id="glossary">
+      <p class="kicker">09 — 附錄</p>
+      <h2>名詞速查</h2>
+
+      <dl class="glossary">
+        <div><dt>uid</dt><dd>Firebase Auth 替每位使用者產生的唯一識別碼。這個專案用它當資料路徑,規則也靠它判斷是不是本人。</dd></div>
+        <div><dt>Security Rules</dt><dd>Firestore 的伺服器端權限規則,預設拒絕,有明確允許才放行。真正的存取控制在這裡。</dd></div>
+        <div><dt>request.auth</dt><dd>規則中代表「發出請求的登入者」,未登入時為 null。</dd></div>
+        <div><dt>serverTimestamp()</dt><dd>寫入時由伺服器填入當下時間的佔位符,避免使用者電腦時間不準或被竄改。</dd></div>
+        <div><dt>onAuthStateChanged</dt><dd>訂閱登入狀態變化的函式,頁面重新整理後也會觸發,回傳取消訂閱的函式。</dd></div>
+        <div><dt>React Context</dt><dd>讓深層元件不必逐層傳 props 就能取得共用資料。AuthProvider 用它提供登入狀態。</dd></div>
+        <div><dt>NEXT_PUBLIC_</dt><dd>Next.js 的環境變數前綴,代表會被打包進前端程式碼,所以只能放可公開的值。</dd></div>
+        <div><dt>最小權限</dt><dd>只開放必要的操作。沒有 update 的介面,規則就不給 update。</dd></div>
+        <div><dt>帳號列舉</dt><dd>藉由不同的錯誤訊息推測哪些帳號存在的攻擊手法,統一錯誤訊息即可避免。</dd></div>
+        <div><dt>permission-denied</dt><dd>Firestore 因規則不允許而拒絕請求時的錯誤代碼。</dd></div>
+      </dl>
+
+      <h3>延伸閱讀</h3>
+      <ul>
+        <li><a href="https://firebase.google.com/docs/auth/web/password-auth">Firebase — 使用密碼驗證(Web)</a></li>
+        <li><a href="https://firebase.google.com/docs/firestore/security/get-started">Firestore Security Rules 入門</a></li>
+        <li><a href="https://firebase.google.com/docs/firestore/security/rules-conditions">在規則中使用條件</a></li>
+        <li><a href="https://nextjs.org/docs/app/guides/environment-variables">Next.js — 環境變數</a></li>
+      </ul>
+    </section>
+
+  </article>
+
+  <footer class="end">
+    <span>WeHelp 記帳專案 · 技術筆記</span>
+    <span>撰寫於 2026-10-05</span>
+  </footer>
+
+</div>
+</body>
+</html>
